@@ -14,21 +14,23 @@ func numberGenerator(total int, ch chan<- int, wg *sync.WaitGroup) {
 	}
 }
 
-func printNumber(ch <-chan int, wg *sync.WaitGroup) {
+func printNumber(index int, ch <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := range ch {
-		fmt.Printf("I am proud to print: %d\n", i)
+		fmt.Printf("%v: I am proud to print: %d\n", index, i)
 	}
 }
 
 func main() {
 	var ch chan int = make(chan int)
 	var wg sync.WaitGroup
-	wg.Add(2)
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go printNumber(i, ch, &wg)
+	}
 
-	go printNumber(ch, &wg)
-	numberGenerator(20, ch, &wg)
+	numberGenerator(2000, ch, &wg)
 	close(ch)
 
 	fmt.Println("Waiting for goroutines...")
