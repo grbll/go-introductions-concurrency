@@ -5,27 +5,31 @@ import (
 	"sync"
 )
 
-func numberGenerator(total int, wg *sync.WaitGroup) {
+func numberGenerator(total int, ch chan<- int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := 0; i < total; i++ {
-		fmt.Printf("Generating number %d\n", i)
+		fmt.Printf("Generating number %d\n", i*i)
+		ch <- i * i
 	}
 }
 
-func printThreeNumber(wg *sync.WaitGroup) {
+func printNumber(ch <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	for i := 0; i < 4; i++ {
-		fmt.Printf("I am poud to print: %d\n", i)
+	for i := range ch {
+		fmt.Printf("I am proud to print: %d\n", i)
 	}
 }
+
 func main() {
+	var ch chan int = make(chan int)
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go printThreeNumber(&wg)
-	go numberGenerator(2000, &wg)
+	go printNumber(ch, &wg)
+	numberGenerator(20, ch, &wg)
+	close(ch)
 
 	fmt.Println("Waiting for goroutines...")
 	wg.Wait()
